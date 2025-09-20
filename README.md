@@ -5,6 +5,7 @@ Backend para una aplicación simple de gestión de tareas desarrollado como part
 ## 📋 Descripción
 
 Este proyecto es la primera versión del backend para una aplicación de gestión de tareas (TodoApp), implementado utilizando las tecnologías aprendidas en la **Sesión 3** del curso DSAM.
+Se añadirá nuevas versiones según las sesiones de clase.
 
 ## 🛠️ Tecnologías Utilizadas
 
