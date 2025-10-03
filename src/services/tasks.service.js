@@ -15,8 +15,8 @@ export const getTasks = async (userId) => {
 export const createTask = async (userId, data) => {
   const newTask = {
     ...data,
-    completada: false,
-    fechaCreacion: new Date(),
+    completed: false,
+    creationDate: new Date(),
   };
   const createdTask = await taskRef(userId).add(newTask);
   return { id: createdTask.id, ...newTask };
