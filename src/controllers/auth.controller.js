@@ -25,10 +25,36 @@ export const login = async (req, res) => {
 
     const token = generateToken(user.id);
 
-    res.status(200).json({
-      token,
-      user,
+    res.cookie("accessToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+      sameSite: "strict",
+      path: "/",
     });
+
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    });
+    res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -51,7 +77,13 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await authService.createUser(email, hashedPassword, name);
-    res.status(200).json(user);
+    res.status(200).json({
+      user: {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
