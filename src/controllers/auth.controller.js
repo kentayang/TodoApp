@@ -1,7 +1,12 @@
 import * as authService from "../services/auth.service.js";
-import { loginSchema, registerSchema } from "../schema/auth.schema.js";
+import {
+  loginSchema,
+  registerSchema,
+  googleAuthSchema,
+} from "../schema/auth.schema.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/jwt.utils.js";
+import admin from "firebase-admin";
 
 export const login = async (req, res) => {
   try {
@@ -78,6 +83,48 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await authService.createUser(email, hashedPassword, name);
     res.status(200).json({
+      user: {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const googleLogin = async (req, res) => {
+  try {
+    const validatedData = googleAuthSchema.safeParse(req.body);
+    if (!validatedData.success) {
+      return res
+        .status(400)
+        .json({ message: "Invalid data", issues: validatedData.error.issues });
+    }
+
+    const { idToken } = validatedData.data;
+
+    // Verificar el token de Google con Firebase Admin
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { email, name, uid: googleUid } = decodedToken;
+
+    // Buscar o crear el usuario en Firestore
+    const user = await authService.findOrCreateUser(email, name, googleUid);
+
+    // Generar JWT propio
+    const token = generateToken(user.id);
+
+    res.cookie("accessToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+      sameSite: "strict",
+      path: "/",
+    });
+
+    res.status(200).json({
+      message: "Login successful",
       user: {
         userId: user.id,
         email: user.email,

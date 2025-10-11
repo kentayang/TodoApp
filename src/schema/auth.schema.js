@@ -24,3 +24,7 @@ export const registerSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+export const googleAuthSchema = z.object({
+  idToken: z.string().min(1, { message: "idToken is required" }),
+});

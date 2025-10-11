@@ -17,3 +17,27 @@ export const getUserByEmail = async (email) => {
     ...user.docs[0].data(),
   };
 };
+
+export const findOrCreateUser = async (email, name, googleUid) => {
+  // Buscar usuario existente
+  const existingUser = await getUserByEmail(email);
+
+  if (existingUser) {
+    return existingUser;
+  }
+
+  // Crear nuevo usuario sin password
+  const newUser = await db.collection("users").add({
+    email,
+    name,
+    googleUid,
+    createdAt: new Date().toISOString(),
+  });
+
+  return {
+    id: newUser.id,
+    email,
+    name,
+    googleUid,
+  };
+};
